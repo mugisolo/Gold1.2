@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Menu, X, Globe, CreditCard, Award, Lock } from 'lucide-react';
+import { Shield, Menu, X, Globe, CreditCard, Award, Lock, FileSearch } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/translations';
 
@@ -8,6 +8,8 @@ interface NavbarProps {
   onLanguageChange: (lang: Language) => void;
   onOpenRegistration: () => void;
   onOpenCardPayment: () => void;
+  onOpenDocVerification: () => void;
+  onOpenClientPortal: () => void;
   onOpenPortalAuth: () => void;
 }
 
@@ -16,6 +18,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLanguageChange,
   onOpenRegistration,
   onOpenCardPayment,
+  onOpenDocVerification,
+  onOpenClientPortal,
   onOpenPortalAuth
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,8 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { name: "The Reality", href: "#market-reality" },
     { name: "Supply Chain", href: "#food-chain" },
     { name: "Scam Immunity", href: "#scam-immunity" },
-    { name: "Packages", href: "#packages" },
-    { name: "Legal Charter", href: "#charter" }
+    { name: "Packages", href: "#packages" }
   ];
 
   return (
@@ -61,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </a>
 
           {/* Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-6 text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <nav className="hidden xl:flex items-center gap-5 text-xs font-semibold text-slate-300 uppercase tracking-wider">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -108,6 +111,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
+            {/* Client Portal Button */}
+            <button
+              onClick={onOpenClientPortal}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-600/50 rounded transition-colors whitespace-nowrap"
+              title="Secure Client Portal: Track Document Verification & Expedition Status"
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Client Portal</span>
+            </button>
+
             {/* Admin & Staff Portal Access Button */}
             <button
               onClick={onOpenPortalAuth}
@@ -115,17 +128,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="Admin & Staff Portal Access"
             >
               <Lock className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="font-mono-data text-[11px]">Portals</span>
+              <span className="font-mono-data text-[11px]">Staff/Admin</span>
             </button>
 
-            {/* Visa / Mastercard Pay Button */}
+            {/* One-Off $2,500 Document Verification Button */}
             <button
-              onClick={onOpenCardPayment}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:text-white bg-[#131A26] hover:bg-[#182232] border border-slate-700 hover:border-[#D4AF37]/50 rounded transition-colors whitespace-nowrap"
+              onClick={onOpenDocVerification}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#182232] hover:bg-[#222E42] border border-[#D4AF37]/50 rounded transition-colors whitespace-nowrap"
             >
-              <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Card Pay</span>
-              <span className="text-[10px] text-slate-400 font-mono-data">(Visa/MC)</span>
+              <FileSearch className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Verify Document ($2,500)</span>
             </button>
 
             {/* Register for Expedition CTA */}
@@ -134,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="px-3.5 py-1.5 text-xs font-bold text-[#0B0F17] bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] hover:brightness-110 rounded transition-all whitespace-nowrap flex items-center gap-1.5 shadow-sm shadow-[#D4AF37]/20"
             >
               <Award className="w-3.5 h-3.5" />
-              <span>Register for Expedition</span>
+              <span>Register</span>
             </button>
 
             {/* Mobile menu button */}
@@ -162,6 +174,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               </a>
             ))}
             <div className="pt-2 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenClientPortal();
+                }}
+                className="w-full text-center px-3 py-2 text-xs font-bold text-emerald-300 bg-emerald-950/50 border border-emerald-600/60 rounded flex items-center justify-center gap-2"
+              >
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Client Portal (Track Verifications & Expedition)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenDocVerification();
+                }}
+                className="w-full text-center px-3 py-2 text-xs font-bold text-white bg-[#182232] border border-[#D4AF37]/60 rounded flex items-center justify-center gap-2"
+              >
+                <FileSearch className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Verify Document ($2,500 · 24h AI + Officer 1 Report)</span>
+              </button>
+
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);

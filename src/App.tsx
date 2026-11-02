@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Language, ContentPost, PhotoItem, ExpeditionRegistration, StaffMember, FieldLog, PaymentRecord } from './types';
+import { Language, ContentPost, PhotoItem, ExpeditionRegistration, StaffMember, FieldLog, PaymentRecord, DocumentVerification } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { MarketReality } from './components/MarketReality';
@@ -10,8 +10,10 @@ import { PricingPackages } from './components/PricingPackages';
 import { LegalCharter } from './components/LegalCharter';
 import { RegistrationModal } from './components/RegistrationModal';
 import { CardPaymentModal } from './components/CardPaymentModal';
+import { DocumentVerificationModal } from './components/DocumentVerificationModal';
 import { BriefingModal } from './components/BriefingModal';
 import { PortalAuthModal } from './components/PortalAuthModal';
+import { ClientPortal } from './components/ClientPortal';
 import { AdminPortal } from './components/AdminPortal';
 import { StaffPortal } from './components/StaffPortal';
 import { Footer } from './components/Footer';
@@ -21,7 +23,8 @@ import {
   INITIAL_REGISTRATIONS, 
   INITIAL_STAFF, 
   INITIAL_FIELD_LOGS, 
-  INITIAL_PAYMENTS 
+  INITIAL_PAYMENTS,
+  INITIAL_DOCUMENT_VERIFICATIONS
 } from './data/portalData';
 
 export default function App() {
@@ -31,15 +34,18 @@ export default function App() {
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
   const [isCardPaymentOpen, setIsCardPaymentOpen] = useState(false);
+  const [isDocVerificationOpen, setIsDocVerificationOpen] = useState(false);
   const [isPortalAuthOpen, setIsPortalAuthOpen] = useState(false);
   
   // Portal Fullscreen Views
+  const [isClientPortalOpen, setIsClientPortalOpen] = useState(false);
+  const [clientPortalEmailFilter, setClientPortalEmailFilter] = useState<string>('');
   const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
   const [isStaffPortalOpen, setIsStaffPortalOpen] = useState(false);
 
   // Selected parameters
   const [selectedTier, setSelectedTier] = useState<'academic' | 'trader' | 'sovereign'>('trader');
-  const [paymentType, setPaymentType] = useState<'deposit' | 'full'>('deposit');
+  const [paymentType, setPaymentType] = useState<'deposit' | 'full' | 'doc_verification'>('deposit');
   const [preloadedScamNotes, setPreloadedScamNotes] = useState<string>('');
 
   // Portal Data States
@@ -49,6 +55,7 @@ export default function App() {
   const [staff, setStaff] = useState<StaffMember[]>(INITIAL_STAFF);
   const [fieldLogs, setFieldLogs] = useState<FieldLog[]>(INITIAL_FIELD_LOGS);
   const [payments, setPayments] = useState<PaymentRecord[]>(INITIAL_PAYMENTS);
+  const [documentVerifications, setDocumentVerifications] = useState<DocumentVerification[]>(INITIAL_DOCUMENT_VERIFICATIONS);
 
   // Fetch initial portal data from backend if available
   useEffect(() => {
@@ -60,6 +67,7 @@ export default function App() {
         if (data.registrations) setRegistrations(data.registrations);
         if (data.fieldLogs) setFieldLogs(data.fieldLogs);
         if (data.payments) setPayments(data.payments);
+        if (data.documentVerifications) setDocumentVerifications(data.documentVerifications);
       })
       .catch(() => {
         // Fallback to local state if offline or initial load
@@ -71,10 +79,15 @@ export default function App() {
     setIsRegistrationOpen(true);
   };
 
-  const handleOpenCardPayment = (tier?: 'academic' | 'trader' | 'sovereign', type: 'deposit' | 'full' = 'deposit') => {
+  const handleOpenCardPayment = (tier?: 'academic' | 'trader' | 'sovereign', type: 'deposit' | 'full' | 'doc_verification' = 'deposit') => {
     if (tier) setSelectedTier(tier);
     setPaymentType(type);
     setIsCardPaymentOpen(true);
+  };
+
+  const handleOpenClientPortal = (email: string = '') => {
+    setClientPortalEmailFilter(email);
+    setIsClientPortalOpen(true);
   };
 
   const handleApplyWithScamData = (score: number, flaggedIds: string[]) => {
@@ -83,7 +96,7 @@ export default function App() {
     setIsRegistrationOpen(true);
   };
 
-  // Admin Data Actions
+  // Admin & Staff Data Actions
   const handleAddPost = async (newPostData: Omit<ContentPost, 'id' | 'date'>) => {
     try {
       const res = await fetch('/api/portal/post', {
@@ -153,6 +166,19 @@ export default function App() {
     );
   };
 
+  const handleUpdateDocumentVerification = async (id: string, updates: Partial<DocumentVerification>) => {
+    try {
+      await fetch(`/api/verification/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch {}
+    setDocumentVerifications(prev =>
+      prev.map(doc => (doc.id === id ? { ...doc, ...updates } : doc))
+    );
+  };
+
   const handleAddFieldLog = async (logData: Omit<FieldLog, 'id' | 'logDate'>) => {
     try {
       const res = await fetch('/api/portal/field-log', {
@@ -194,24 +220,27 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0B0F17] text-slate-300 font-sans-ui selection:bg-[#D4AF37]/30 selection:text-white">
-      {/* Top Navigation with Registration & Portal Access */}
+      {/* Top Navigation with Registration, $2,500 Document Verification, Client Portal & Admin/Staff Access */}
       <Navbar
         currentLang={currentLang}
         onLanguageChange={setCurrentLang}
         onOpenRegistration={() => setIsRegistrationOpen(true)}
         onOpenCardPayment={() => handleOpenCardPayment()}
+        onOpenDocVerification={() => setIsDocVerificationOpen(true)}
+        onOpenClientPortal={() => handleOpenClientPortal('')}
         onOpenPortalAuth={() => setIsPortalAuthOpen(true)}
       />
 
       {/* Main Page Layout */}
       <main>
-        {/* Hero Section with non-refundable USD 1,000 KYC note */}
+        {/* Hero Section with non-refundable USD 1,000 KYC & $2,500 24h AI Document Verification */}
         <Hero
           currentLang={currentLang}
           onOpenBriefing={() => setIsBriefingOpen(true)}
           onViewPackages={() => scrollToSection('packages')}
           onOpenCardPayment={() => handleOpenCardPayment()}
           onOpenRegistration={() => setIsRegistrationOpen(true)}
+          onOpenDocVerification={() => setIsDocVerificationOpen(true)}
         />
 
         {/* Market Reality & Discrepancies */}
@@ -235,6 +264,7 @@ export default function App() {
         <ScamImmunityTool
           currentLang={currentLang}
           onApplyForVettingWithData={handleApplyWithScamData}
+          onOpenDocVerification={() => setIsDocVerificationOpen(true)}
         />
 
         {/* Three-Tier Pricing Packages with Visa / Mastercard & USD 1,000 KYC Notice */}
@@ -270,7 +300,7 @@ export default function App() {
         onSubmitRegistration={handleSubmitRegistration}
       />
 
-      {/* 2. Card Payment Modal (Relworx Visa & Mastercard, $1,000 KYC Deposit or Full Fee) */}
+      {/* 2. Card Payment Modal (Relworx Visa & Mastercard, $1,000 KYC Deposit, $2,500 Doc Audit, or Full Fee) */}
       <CardPaymentModal
         isOpen={isCardPaymentOpen}
         onClose={() => setIsCardPaymentOpen(false)}
@@ -278,26 +308,63 @@ export default function App() {
         defaultPaymentType={paymentType}
       />
 
-      {/* 3. Confidential B2B Briefing Modal */}
+      {/* 3. $2,500 One-Off Document Verification Modal (AI Analysis -> Staff Officer 1 -> Locked until Analyst Approval) */}
+      <DocumentVerificationModal
+        isOpen={isDocVerificationOpen}
+        onClose={() => setIsDocVerificationOpen(false)}
+        onVerificationCreated={(newVerification: DocumentVerification) => {
+          setDocumentVerifications(prev => [newVerification, ...prev]);
+        }}
+        onOpenClientPortal={(clientEmail: string) => handleOpenClientPortal(clientEmail)}
+      />
+
+      {/* 4. Confidential B2B Briefing Modal */}
       <BriefingModal
         isOpen={isBriefingOpen}
         onClose={() => setIsBriefingOpen(false)}
       />
 
-      {/* 4. Portal Authentication / Role Switcher Modal */}
+      {/* 5. Portal Authentication / Role Switcher Modal */}
       <PortalAuthModal
         isOpen={isPortalAuthOpen}
         onClose={() => setIsPortalAuthOpen(false)}
         onOpenAdmin={() => setIsAdminPortalOpen(true)}
         onOpenStaff={() => setIsStaffPortalOpen(true)}
+        onOpenClientPortal={() => handleOpenClientPortal('')}
       />
 
-      {/* FULLSCREEN ADMIN & STAFF PORTALS */}
+      {/* FULLSCREEN CLIENT, ADMIN & STAFF PORTALS */}
+      {isClientPortalOpen && (
+        <ClientPortal
+          documentVerifications={documentVerifications}
+          registrations={registrations}
+          initialClientEmail={clientPortalEmailFilter}
+          onClose={() => setIsClientPortalOpen(false)}
+          onOpenDocVerification={() => {
+            setIsClientPortalOpen(false);
+            setIsDocVerificationOpen(true);
+          }}
+          onOpenRegistration={() => {
+            setIsClientPortalOpen(false);
+            setIsRegistrationOpen(true);
+          }}
+          onOpenCardPayment={(tier, type) => {
+            setIsClientPortalOpen(false);
+            handleOpenCardPayment(tier, type);
+          }}
+          onOpenStaffPortal={() => {
+            setIsClientPortalOpen(false);
+            setIsStaffPortalOpen(true);
+          }}
+        />
+      )}
+
       {isAdminPortalOpen && (
         <AdminPortal
           posts={posts}
           photos={photos}
           registrations={registrations}
+          documentVerifications={documentVerifications}
           staff={staff}
           payments={payments}
           onAddPost={handleAddPost}
@@ -305,6 +372,7 @@ export default function App() {
           onAddPhoto={handleAddPhoto}
           onDeletePhoto={handleDeletePhoto}
           onUpdateRegistration={handleUpdateRegistration}
+          onUpdateDocumentVerification={handleUpdateDocumentVerification}
           onClose={() => setIsAdminPortalOpen(false)}
           onSwitchToStaff={() => {
             setIsAdminPortalOpen(false);
@@ -316,9 +384,11 @@ export default function App() {
       {isStaffPortalOpen && (
         <StaffPortal
           registrations={registrations}
+          documentVerifications={documentVerifications}
           fieldLogs={fieldLogs}
           staff={staff}
           onUpdateRegistration={handleUpdateRegistration}
+          onUpdateDocumentVerification={handleUpdateDocumentVerification}
           onAddFieldLog={handleAddFieldLog}
           onClose={() => setIsStaffPortalOpen(false)}
           onSwitchToAdmin={() => {

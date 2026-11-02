@@ -7,7 +7,7 @@ interface CardPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedTier?: 'academic' | 'trader' | 'sovereign';
-  defaultPaymentType?: 'deposit' | 'full';
+  defaultPaymentType?: 'deposit' | 'full' | 'doc_verification';
 }
 
 export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
@@ -17,7 +17,7 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
   defaultPaymentType = 'deposit'
 }) => {
   const [tier, setTier] = useState<'academic' | 'trader' | 'sovereign'>(selectedTier);
-  const [paymentType, setPaymentType] = useState<'deposit' | 'full'>(defaultPaymentType);
+  const [paymentType, setPaymentType] = useState<'deposit' | 'full' | 'doc_verification'>(defaultPaymentType);
   const [cardholderName, setCardholderName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -29,9 +29,15 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
 
   const currentPkg = EXPEDITION_PACKAGES.find(p => p.id === tier) || EXPEDITION_PACKAGES[1];
   
-  // Explicitly USD 1,000 KYC deposit per user instructions
+  // Explicitly USD 1,000 KYC deposit or USD 2,500 Document Verification per user instructions
   const KYC_DEPOSIT_AMOUNT = 1000;
-  const totalAmount = paymentType === 'deposit' ? KYC_DEPOSIT_AMOUNT : currentPkg.priceUsd;
+  const DOC_VERIFICATION_AMOUNT = 2500;
+  const totalAmount =
+    paymentType === 'deposit'
+      ? KYC_DEPOSIT_AMOUNT
+      : paymentType === 'doc_verification'
+      ? DOC_VERIFICATION_AMOUNT
+      : currentPkg.priceUsd;
 
   const handleInitiateCardPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,10 +57,13 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
           amount: totalAmount,
           currency: 'USD',
           payment_type: paymentType,
-          description: `Uganda Gold Expedition: ${currentPkg.name} (${paymentType === 'deposit' ? 'Non-Refundable USD 1000 KYC Deposit' : 'Full Payment'})`,
+          description:
+            paymentType === 'doc_verification'
+              ? 'One-Off AI + Staff Officer 1 Document Verification Service (USD 2,500 · 24h Report)'
+              : `Uganda Gold Expedition: ${currentPkg.name} (${paymentType === 'deposit' ? 'Non-Refundable USD 1000 KYC Deposit' : 'Full Payment'})`,
           customer_email: email,
           customer_name: cardholderName,
-          package_tier: currentPkg.name
+          package_tier: paymentType === 'doc_verification' ? 'One-Off Document Verification ($2,500)' : currentPkg.name
         })
       });
 
@@ -102,12 +111,12 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
         {!paymentResult ? (
           <form onSubmit={handleInitiateCardPayment} className="p-6 space-y-4">
             
-            {/* MANDATORY USD 1,000 KYC NOTICE */}
+            {/* MANDATORY USD 1,000 KYC / USD 2,500 VERIFICATION NOTICE */}
             <div className="p-3.5 rounded-lg bg-amber-950/40 border border-amber-600/60 text-xs text-amber-200 flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="leading-relaxed">
                 <strong className="text-white">Notice to Applicant: </strong>
-                USD $1,000 of this payment covers sovereign statutory KYC vetting, Interpol clearance, and DGSM registration, and is <strong className="text-white font-bold underline">strictly non-refundable</strong>.
+                Expedition registrations include a <strong className="text-white font-bold underline">strictly non-refundable USD $1,000 KYC fee</strong>. Standalone AI + Staff Officer 1 document verification is a <strong className="text-emerald-300 font-bold">one-off USD $2,500 service</strong> (report delivered within 24 hours).
               </div>
             </div>
 
@@ -134,38 +143,40 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
             )}
 
             {/* Tier Selector */}
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Expedition Package Tier
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {EXPEDITION_PACKAGES.map((pkg) => (
-                  <button
-                    key={pkg.id}
-                    type="button"
-                    onClick={() => setTier(pkg.id)}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      tier === pkg.id
-                        ? 'bg-[#182232] border-[#D4AF37] text-white'
-                        : 'bg-[#0B0F17] border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="text-[10px] font-mono-data text-[#D4AF37]">{pkg.tierNumber}</div>
-                    <div className="text-xs font-bold truncate">{pkg.name.split(' ')[0]}</div>
-                    <div className="text-[11px] font-mono-data text-slate-300 mt-0.5">
-                      ${pkg.priceUsd.toLocaleString()}
-                    </div>
-                  </button>
-                ))}
+            {paymentType !== 'doc_verification' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Expedition Package Tier
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {EXPEDITION_PACKAGES.map((pkg) => (
+                    <button
+                      key={pkg.id}
+                      type="button"
+                      onClick={() => setTier(pkg.id)}
+                      className={`p-2.5 rounded-lg border text-left transition-all ${
+                        tier === pkg.id
+                          ? 'bg-[#182232] border-[#D4AF37] text-white'
+                          : 'bg-[#0B0F17] border-slate-800 text-slate-400 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="text-[10px] font-mono-data text-[#D4AF37]">{pkg.tierNumber}</div>
+                      <div className="text-xs font-bold truncate">{pkg.name.split(' ')[0]}</div>
+                      <div className="text-[11px] font-mono-data text-slate-300 mt-0.5">
+                        ${pkg.priceUsd.toLocaleString()}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Payment Type: USD 1,000 KYC vs Full */}
+            {/* Payment Type: USD 1,000 KYC vs USD 2,500 Doc Verification vs Full */}
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Payment Schedule
+                Payment Service / Schedule
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setPaymentType('deposit')}
@@ -180,7 +191,25 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
                     <span className="text-xs font-mono-data text-[#D4AF37] font-bold">$1,000</span>
                   </div>
                   <p className="text-[10px] text-amber-300/90 mt-1 font-mono-data">
-                    Non-refundable KYC fee
+                    Non-refundable KYC
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentType('doc_verification')}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    paymentType === 'doc_verification'
+                      ? 'bg-emerald-950/50 border-emerald-400'
+                      : 'bg-[#0B0F17] border-slate-800 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">Doc Audit</span>
+                    <span className="text-xs font-mono-data text-emerald-400 font-bold">$2,500</span>
+                  </div>
+                  <p className="text-[10px] text-emerald-300/90 mt-1 font-mono-data">
+                    AI + Officer 1 (24h)
                   </p>
                 </button>
 
@@ -194,13 +223,13 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white">Full Delegation</span>
+                    <span className="text-xs font-bold text-white">Full Package</span>
                     <span className="text-xs font-mono-data text-[#D4AF37] font-bold">
                       ${currentPkg.priceUsd.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-400 mt-1">
-                    Includes $1,000 non-refundable KYC
+                    Incl. $1,000 KYC
                   </p>
                 </button>
               </div>
@@ -257,7 +286,11 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
               <div>
                 <span className="text-[10px] font-mono-data text-slate-400 uppercase">Total Billed to Card</span>
                 <div className="text-xs text-slate-300 font-medium">
-                  {paymentType === 'deposit' ? 'KYC Verification Deposit' : currentPkg.name}
+                  {paymentType === 'deposit'
+                    ? 'KYC Verification Deposit'
+                    : paymentType === 'doc_verification'
+                    ? 'One-Off AI + Officer 1 Document Verification (24h SLA)'
+                    : currentPkg.name}
                 </div>
               </div>
               <div className="font-cinzel text-2xl font-bold text-[#D4AF37] font-mono-data">

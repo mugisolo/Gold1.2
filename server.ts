@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { GoogleGenAI, Type } from '@google/genai';
 
 dotenv.config();
 
@@ -13,7 +14,19 @@ const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: '15mb' }));
 
-// Portal in-memory storage (backed by initial data)
+// Initialize Gemini SDK with telemetry header
+const getGeminiClient = () => {
+  return new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
+    },
+  });
+};
+
+// Portal in-memory storage
 let posts = [
   {
     id: 'post-1',
@@ -74,6 +87,46 @@ let photos = [
   }
 ];
 
+let documentVerifications = [
+  {
+    id: 'DOC-VER-2026-4401',
+    clientName: 'Henrik Lindqvist',
+    companyName: 'Nordic Bullion Treasury AB',
+    email: 'h.lindqvist@nordicbullion.se',
+    phone: '+46 8 501 2290',
+    documentType: 'Full Corporate Offer (FCO)',
+    claimedSeller: 'Victoria Nile Gold Syndicate Ltd',
+    claimedQuantityKg: '150 kg',
+    claimedDiscountPercent: '22% below LBMA',
+    documentTextOrNotes: 'FCO claims 150kg Au Dore bars stored at Entebbe customs warehouse. Requests $65,000 USD wire to private legal counsel escrow for URA 5% export clearance before buyer can view bars.',
+    fileName: 'FCO_VictoriaNile_150KG_Stamped.pdf',
+    feeUsd: 2500,
+    paymentStatus: 'paid',
+    paymentRef: 'UGE-CARD-DOC-4401',
+    assignedOfficer: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
+    status: 'assigned_to_staff_1',
+    submittedAt: '2026-05-01 11:20 UTC',
+    slaDeadline: '2026-05-02 11:20 UTC (Within 24 Hours)',
+    aiAnalysis: {
+      riskScore: 98,
+      verdict: 'CRITICAL COUNTERFEIT RISK',
+      executiveSummary: 'AI Forensic Deconstruction confirms textbook Advance-Fee Gold Fraud. A 22% discount on liquid bullion is economically impossible, and URA never collects export tax via private attorney escrow accounts.',
+      redFlags: [
+        '22% below LBMA spot discount is a mathematical impossibility in physical bullion markets.',
+        'Upfront $65,000 fee routed to a private lawyer account instead of official URA ASYCUDA tax portal.',
+        'Seller entity "Victoria Nile Gold Syndicate Ltd" does not hold an active Mineral Dealer License (MDL) in the 2026 DGSM Cadastre.'
+      ],
+      statutoryCrossCheck: 'Violates Section 142 of the Uganda Mining and Minerals Act 2022 & URA Single Customs Territory statutory payment rules.',
+      staffActionPlan: [
+        'Staff Officer 1 to pull official DGSM negative registry certificate for client dossier.',
+        'Cross-reference attorney escrow bank coordinates with FIA financial intelligence alert list.',
+        'Compile final signed PDF audit report and dispatch to Henrik Lindqvist within 24-hour SLA.'
+      ]
+    },
+    staffFollowUpNotes: 'DGSM search confirmed entity is unlicensed. Preparing final stamped verification report for client dispatch.'
+  }
+];
+
 let registrations = [
   {
     id: 'REG-2026-8812',
@@ -92,7 +145,7 @@ let registrations = [
     kycAcknowledged: true,
     kycPaymentStatus: 'paid',
     status: 'approved',
-    assignedStaff: 'Lt. Col. (Rtd) Arthur Mwesigye',
+    assignedStaff: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
     internalNotes: 'Interpol clear. Corporate trade license validated in Dubai DMCC registry. USD 1,000 KYC payment confirmed via Visa.',
     registeredAt: '2026-04-20',
     passportVerified: true,
@@ -174,6 +227,19 @@ let fieldLogs = [
 
 let payments = [
   {
+    id: 'PAY-8800',
+    reference: 'UGE-CARD-DOC-4401',
+    customerName: 'Henrik Lindqvist',
+    email: 'h.lindqvist@nordicbullion.se',
+    amount: 2500,
+    currency: 'USD',
+    type: 'doc_verification',
+    status: 'Completed',
+    cardBrand: 'Visa',
+    date: '2026-05-01 11:18',
+    tier: 'One-Off Document Verification ($2,500)'
+  },
+  {
     id: 'PAY-8801',
     reference: 'UGE-CARD-REL-8812',
     customerName: 'Alexander Vance',
@@ -208,7 +274,213 @@ app.get('/api/portal/data', (_req: Request, res: Response) => {
     photos,
     registrations,
     fieldLogs,
-    payments
+    payments,
+    documentVerifications
+  });
+});
+
+// ONE-OFF USD $2,500 AI DOCUMENT VERIFICATION ENDPOINT
+// Analyzes submitted document via Gemini AI and routes report to Staff Officer 1 for follow-up & 24h client delivery
+app.post('/api/verification/submit', async (req: Request, res: Response) => {
+  try {
+    const {
+      clientName,
+      companyName,
+      email,
+      phone,
+      documentType,
+      claimedSeller,
+      claimedQuantityKg,
+      claimedDiscountPercent,
+      documentTextOrNotes,
+      fileName,
+      fileBase64,
+      fileMimeType,
+      paymentRef
+    } = req.body;
+
+    if (!clientName || !email || !documentType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client name, email, and document type are required.'
+      });
+    }
+
+    const docId = `DOC-VER-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const txRef = paymentRef || `UGE-CARD-DOC-${Math.floor(1000 + Math.random() * 9000)}`;
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    // Log the USD 2,500 payment record
+    payments.unshift({
+      id: `PAY-${Date.now().toString().slice(-4)}`,
+      reference: txRef,
+      customerName: clientName,
+      email,
+      amount: 2500,
+      currency: 'USD',
+      type: 'doc_verification',
+      status: 'Completed',
+      cardBrand: 'Visa',
+      date: now.toISOString().replace('T', ' ').substring(0, 16),
+      tier: 'One-Off Document Verification ($2,500)'
+    });
+
+    // Perform AI Forensic Analysis via @google/genai ('gemini-3.8-flash')
+    let aiAnalysisResult = {
+      riskScore: 88,
+      verdict: 'HIGH FRAUD PROBABILITY' as 'CRITICAL COUNTERFEIT RISK' | 'HIGH FRAUD PROBABILITY' | 'MODERATE ANOMALIES' | 'PRELIMINARY PASS (FIELD VERIFICATION REQUIRED)',
+      executiveSummary: `Preliminary AI forensic scan of the submitted ${documentType} from "${claimedSeller || 'Unverified Seller'}" indicates high counterparty risk patterns requiring physical registry cross-checking by Staff Officer 1.`,
+      redFlags: [
+        `Claimed discount (${claimedDiscountPercent || 'deep discount'}) deviates from LBMA physical spot parity.`,
+        `Counterparty "${claimedSeller || 'Seller'}" requires manual verification against the 2026 DGSM Mineral Cadastre in Entebbe.`,
+        `Chain-of-custody and URA ASYCUDA customs assessment numbers must be verified prior to any capital commitment.`
+      ],
+      statutoryCrossCheck: 'Evaluated under the Uganda Mining and Minerals Act 2022, ICGLR Regional Certification Mechanism, and URA Customs 5% Export Levy statutes.',
+      staffActionPlan: [
+        'Staff Officer 1 (Lt. Col. Rtd. Arthur Mwesigye) to verify concession/MDL license at DGSM Entebbe.',
+        'Cross-reference signatory names and tax stamps with URA Customs Enforcement.',
+        'Deliver final signed verification dossier to client within 24 hours.'
+      ]
+    };
+
+    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY') {
+      try {
+        const ai = getGeminiClient();
+        const promptText = `You are the Chief Forensic Intelligence Analyst for the Uganda Gold Expedition.
+A client has paid USD $2,500 for an urgent 24-hour forensic verification of an East African gold transaction document.
+Analyze the following submission details and prepare a structured forensic intelligence report to be routed immediately to Staff Officer 1 (Lt. Col. Rtd. Arthur Mwesigye) for field verification and follow-up.
+
+Client: ${clientName} (${companyName || 'Private Principal'})
+Document Type: ${documentType}
+Claimed Seller / Counterparty: ${claimedSeller || 'Not specified'}
+Claimed Gold Quantity: ${claimedQuantityKg || 'Not specified'}
+Claimed Price / Discount: ${claimedDiscountPercent || 'Not specified'}
+Document Content / Clauses / Notes:
+${documentTextOrNotes || 'No additional text provided.'}
+
+Evaluate against East African gold fraud vectors (e.g., discounts >3% below LBMA spot, upfront export tax/customs fee demands, private lawyer escrow accounts, fake DGSM mineral dealer licenses, forged ICGLR certificates, or unverified DRC transit claims).`;
+
+        const parts: any[] = [{ text: promptText }];
+        if (fileBase64 && fileMimeType && (fileMimeType.startsWith('image/') || fileMimeType === 'application/pdf')) {
+          parts.unshift({
+            inlineData: {
+              mimeType: fileMimeType,
+              data: fileBase64
+            }
+          });
+        }
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: { parts },
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                riskScore: {
+                  type: Type.INTEGER,
+                  description: 'Forensic fraud risk score from 0 to 99.'
+                },
+                verdict: {
+                  type: Type.STRING,
+                  description: 'One of: CRITICAL COUNTERFEIT RISK, HIGH FRAUD PROBABILITY, MODERATE ANOMALIES, PRELIMINARY PASS (FIELD VERIFICATION REQUIRED)'
+                },
+                executiveSummary: {
+                  type: Type.STRING,
+                  description: 'Concise 2-3 sentence forensic summary of the document.'
+                },
+                redFlags: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                  description: '3 to 4 specific forensic red flags or anomalies detected.'
+                },
+                statutoryCrossCheck: {
+                  type: Type.STRING,
+                  description: 'Specific reference to Uganda Mining Act 2022, DGSM Cadastre, ICGLR, or URA ASYCUDA compliance.'
+                },
+                staffActionPlan: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                  description: '3 concrete follow-up actions for Staff Officer 1 to complete within the 24-hour SLA.'
+                }
+              },
+              required: ['riskScore', 'verdict', 'executiveSummary', 'redFlags', 'statutoryCrossCheck', 'staffActionPlan']
+            }
+          }
+        });
+
+        const rawJson = (response.text ?? '{}').trim();
+        const parsed = JSON.parse(rawJson);
+        if (parsed && typeof parsed.riskScore === 'number') {
+          aiAnalysisResult = {
+            riskScore: Math.min(99, Math.max(5, parsed.riskScore)),
+            verdict: parsed.verdict || 'HIGH FRAUD PROBABILITY',
+            executiveSummary: parsed.executiveSummary || aiAnalysisResult.executiveSummary,
+            redFlags: Array.isArray(parsed.redFlags) && parsed.redFlags.length > 0 ? parsed.redFlags : aiAnalysisResult.redFlags,
+            statutoryCrossCheck: parsed.statutoryCrossCheck || aiAnalysisResult.statutoryCrossCheck,
+            staffActionPlan: Array.isArray(parsed.staffActionPlan) && parsed.staffActionPlan.length > 0 ? parsed.staffActionPlan : aiAnalysisResult.staffActionPlan
+          };
+        }
+      } catch (aiErr: any) {
+        console.warn('Gemini forensic analysis fallback used:', aiErr?.message);
+      }
+    }
+
+    const newVerification = {
+      id: docId,
+      clientName,
+      companyName: companyName || 'Private Principal',
+      email,
+      phone: phone || '',
+      documentType,
+      claimedSeller: claimedSeller || 'Unverified Entity',
+      claimedQuantityKg: claimedQuantityKg || 'Unspecified',
+      claimedDiscountPercent: claimedDiscountPercent || 'Unspecified',
+      documentTextOrNotes: documentTextOrNotes || '',
+      fileName: fileName || 'Submitted_Offer_Dossier.pdf',
+      feeUsd: 2500,
+      paymentStatus: 'paid' as const,
+      paymentRef: txRef,
+      assignedOfficer: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
+      status: 'assigned_to_staff_1' as const,
+      submittedAt: now.toISOString().replace('T', ' ').substring(0, 16) + ' UTC',
+      slaDeadline: tomorrow.toISOString().replace('T', ' ').substring(0, 16) + ' UTC (Within 24 Hours)',
+      aiAnalysis: aiAnalysisResult,
+      staffFollowUpNotes: 'Routed automatically from AI Forensic Engine to Staff Officer 1 for physical DGSM & URA registry verification. Final report due to client within 24 hours.'
+    };
+
+    documentVerifications.unshift(newVerification);
+
+    return res.json({
+      success: true,
+      verification: newVerification
+    });
+  } catch (err: any) {
+    console.error('Document verification error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process document verification.',
+      error: err.message
+    });
+  }
+});
+
+// STAFF OFFICER 1 / ADMIN: Update Document Verification status & follow-up notes
+app.patch('/api/verification/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const idx = documentVerifications.findIndex(d => d.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Verification record not found.' });
+  }
+  documentVerifications[idx] = {
+    ...documentVerifications[idx],
+    ...req.body
+  };
+  return res.json({
+    success: true,
+    verification: documentVerifications[idx]
   });
 });
 
@@ -301,7 +573,7 @@ app.post('/api/portal/registration', (req: Request, res: Response) => {
     kycAcknowledged: Boolean(kycAcknowledged),
     kycPaymentStatus: 'pending',
     status: 'pending_kyc',
-    assignedStaff: 'Lt. Col. (Rtd) Arthur Mwesigye',
+    assignedStaff: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
     internalNotes: 'Applicant notified: USD 1,000 KYC fee is non-refundable.',
     registeredAt: new Date().toISOString().split('T')[0],
     passportVerified: false,
@@ -379,11 +651,11 @@ app.post('/api/payments/relworx-session', async (req: Request, res: Response) =>
       email: customer_email || 'client@goldexpedition.org',
       amount: Number(amount),
       currency: currency || 'USD',
-      type: payment_type === 'full' ? 'full_payment' : 'deposit_kyc',
+      type: payment_type === 'doc_verification' ? 'doc_verification' : payment_type === 'full' ? 'full_payment' : 'deposit_kyc',
       status: 'Completed',
       cardBrand: 'Visa',
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      tier: package_tier || 'Professional Trader'
+      tier: package_tier || (payment_type === 'doc_verification' ? 'One-Off Document Verification ($2,500)' : 'Professional Trader')
     });
 
     // Check if live API keys are provided
@@ -401,7 +673,7 @@ app.post('/api/payments/relworx-session', async (req: Request, res: Response) =>
             reference: txReference,
             currency: currency,
             amount: Number(amount),
-            description: description || `Uganda Gold Expedition: Non-refundable USD 1000 KYC / ${package_tier || 'Seat'}`
+            description: description || `Uganda Gold Expedition: ${package_tier || 'Card Settlement'}`
           })
         });
 

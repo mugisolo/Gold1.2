@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, AlertOctagon, Check, RotateCcw, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react';
+import { ShieldAlert, AlertOctagon, Check, RotateCcw, ArrowRight, ShieldCheck, HelpCircle, FileSearch } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/translations';
 import { SCAM_RULES } from '../data/expeditionData';
@@ -7,11 +7,13 @@ import { SCAM_RULES } from '../data/expeditionData';
 interface ScamImmunityToolProps {
   currentLang: Language;
   onApplyForVettingWithData?: (score: number, flags: string[]) => void;
+  onOpenDocVerification?: () => void;
 }
 
 export const ScamImmunityTool: React.FC<ScamImmunityToolProps> = ({
   currentLang,
-  onApplyForVettingWithData
+  onApplyForVettingWithData,
+  onOpenDocVerification
 }) => {
   const t = translations[currentLang];
   const [selectedFlags, setSelectedFlags] = useState<string[]>(['deep-discount', 'advance-export-tax']);
@@ -203,23 +205,35 @@ export const ScamImmunityTool: React.FC<ScamImmunityToolProps> = ({
                 </div>
               </div>
 
-              {/* Action Button */}
-              <button
-                onClick={() => {
-                  if (onApplyForVettingWithData) {
-                    onApplyForVettingWithData(displayRisk, selectedFlags);
-                  }
-                }}
-                className="w-full py-3.5 text-xs font-bold text-[#0B0F17] bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] hover:brightness-110 active:scale-[0.99] rounded transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/20"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Register for Deal Audit & Expedition</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {/* Action Buttons */}
+              <div className="space-y-2.5">
+                {onOpenDocVerification && (
+                  <button
+                    onClick={onOpenDocVerification}
+                    className="w-full py-3.5 text-xs font-bold text-emerald-300 bg-emerald-950/60 hover:bg-emerald-950 border border-emerald-500/50 rounded transition-all flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <FileSearch className="w-4 h-4 text-emerald-400" />
+                    <span>Submit Document for $2,500 AI + Officer 1 Audit (24h Report)</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    if (onApplyForVettingWithData) {
+                      onApplyForVettingWithData(displayRisk, selectedFlags);
+                    }
+                  }}
+                  className="w-full py-3.5 text-xs font-bold text-[#0B0F17] bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] hover:brightness-110 active:scale-[0.99] rounded transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/20"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Register for Deal Audit & Expedition</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
 
               <div className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5">
                 <HelpCircle className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>Includes 1-on-1 forensic deal review. USD 1,000 KYC fee is non-refundable.</span>
+                <span>$2,500 one-off AI + Staff Officer 1 document audit OR $1,000 non-refundable expedition KYC.</span>
               </div>
 
             </div>

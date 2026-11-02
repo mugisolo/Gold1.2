@@ -65,6 +65,36 @@ export interface ExpeditionRegistration {
   dgsmClearance?: boolean;
 }
 
+export interface DocumentVerification {
+  id: string;
+  clientName: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  documentType: 'Full Corporate Offer (FCO)' | 'Sales & Purchase Agreement (SPA)' | 'DGSM Mineral License' | 'URA Customs / Export Permit' | 'ICGLR Certificate' | 'Refinery Assay Report';
+  claimedSeller: string;
+  claimedQuantityKg: string;
+  claimedDiscountPercent: string;
+  documentTextOrNotes: string;
+  fileName?: string;
+  feeUsd: number; // 2500
+  paymentStatus: 'paid' | 'pending';
+  paymentRef?: string;
+  assignedOfficer: string; // Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye
+  status: 'analyzing' | 'assigned_to_staff_1' | 'dispatched_to_client';
+  submittedAt: string;
+  slaDeadline: string;
+  aiAnalysis?: {
+    riskScore: number;
+    verdict: 'CRITICAL COUNTERFEIT RISK' | 'HIGH FRAUD PROBABILITY' | 'MODERATE ANOMALIES' | 'PRELIMINARY PASS (FIELD VERIFICATION REQUIRED)';
+    executiveSummary: string;
+    redFlags: string[];
+    statutoryCrossCheck: string;
+    staffActionPlan: string[];
+  };
+  staffFollowUpNotes?: string;
+}
+
 export interface ContentPost {
   id: string;
   title: string;
@@ -112,7 +142,7 @@ export interface PaymentRecord {
   email: string;
   amount: number;
   currency: string;
-  type: 'deposit_kyc' | 'full_payment';
+  type: 'deposit_kyc' | 'full_payment' | 'doc_verification';
   status: 'Completed' | 'Pending' | 'Failed';
   cardBrand: 'Visa' | 'Mastercard';
   date: string;

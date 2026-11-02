@@ -13,14 +13,16 @@ import {
   X, 
   ExternalLink,
   Lock,
-  ArrowRight
+  ArrowRight,
+  FileSearch
 } from 'lucide-react';
-import { ContentPost, PhotoItem, ExpeditionRegistration, StaffMember, PaymentRecord } from '../types';
+import { ContentPost, PhotoItem, ExpeditionRegistration, StaffMember, PaymentRecord, DocumentVerification } from '../types';
 
 interface AdminPortalProps {
   posts: ContentPost[];
   photos: PhotoItem[];
   registrations: ExpeditionRegistration[];
+  documentVerifications: DocumentVerification[];
   staff: StaffMember[];
   payments: PaymentRecord[];
   onAddPost: (post: Omit<ContentPost, 'id' | 'date'>) => void;
@@ -28,6 +30,7 @@ interface AdminPortalProps {
   onAddPhoto: (photo: Omit<PhotoItem, 'id' | 'dateAdded'>) => void;
   onDeletePhoto: (id: string) => void;
   onUpdateRegistration: (id: string, updates: Partial<ExpeditionRegistration>) => void;
+  onUpdateDocumentVerification: (id: string, updates: Partial<DocumentVerification>) => void;
   onClose: () => void;
   onSwitchToStaff: () => void;
 }
@@ -36,6 +39,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   posts,
   photos,
   registrations,
+  documentVerifications,
   staff,
   payments,
   onAddPost,
@@ -43,10 +47,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onAddPhoto,
   onDeletePhoto,
   onUpdateRegistration,
+  onUpdateDocumentVerification,
   onClose,
   onSwitchToStaff
 }) => {
-  const [activeTab, setActiveTab] = useState<'content' | 'photos' | 'registrations' | 'payments' | 'staff' | 'gateway'>('registrations');
+  const [activeTab, setActiveTab] = useState<'content' | 'photos' | 'registrations' | 'doc-verifications' | 'payments' | 'staff' | 'gateway'>('registrations');
   
   // Post Form State
   const [newPostTitle, setNewPostTitle] = useState('');
@@ -149,6 +154,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         >
           <ShieldCheck className="w-4 h-4" />
           <span>Registrations & KYC ({registrations.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('doc-verifications')}
+          className={`px-3 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'doc-verifications'
+              ? 'bg-[#182232] text-[#D4AF37] border border-[#D4AF37]/40'
+              : 'text-slate-400 hover:text-white hover:bg-[#111722]'
+          }`}
+        >
+          <FileSearch className="w-4 h-4" />
+          <span>$2,500 AI Document Audits ({documentVerifications.length})</span>
         </button>
 
         <button
@@ -381,6 +398,76 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </div>
         )}
 
+        {/* TAB 1B: $2,500 AI DOCUMENT VERIFICATIONS */}
+        {activeTab === 'doc-verifications' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div>
+                <h3 className="font-cinzel text-xl font-bold text-white">
+                  $2,500 One-Off AI Document Verifications (Routed to Staff Officer 1)
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Admin oversight of client documents analyzed by Gemini AI and assigned to <strong>Staff Officer 1</strong> under a 24-hour delivery SLA.
+                </p>
+              </div>
+              <button
+                onClick={onSwitchToStaff}
+                className="px-3.5 py-2 text-xs font-bold text-[#0B0F17] bg-[#D4AF37] hover:bg-[#FEF3C7] rounded transition-colors shrink-0"
+              >
+                Open Staff Officer 1 Terminal →
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {documentVerifications.map((doc) => (
+                <div key={doc.id} className="rounded-xl bg-[#111722] border border-slate-800 p-5 space-y-3 shadow-lg">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                    <div>
+                      <span className="font-mono-data text-xs font-bold text-[#D4AF37]">{doc.id}</span>
+                      <span className="text-slate-600 mx-2">·</span>
+                      <span className="text-xs text-white font-bold">{doc.clientName} ({doc.companyName})</span>
+                      <span className="text-slate-600 mx-2">·</span>
+                      <span className="text-xs text-slate-400">{doc.documentType}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono-data text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded">
+                        $2,500 Paid ({doc.paymentRef})
+                      </span>
+                      <span className="text-[10px] font-mono-data text-amber-300 bg-amber-950/60 border border-amber-800 px-2 py-0.5 rounded uppercase font-bold">
+                        {doc.status === 'dispatched_to_client' ? '24h Report Sent' : 'Assigned: Staff Officer 1'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {doc.aiAnalysis && (
+                    <div className="p-3 rounded bg-[#0B0F17] border border-slate-800 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono-data font-bold text-rose-400">
+                          AI Verdict: {doc.aiAnalysis.verdict} (Risk Score: {doc.aiAnalysis.riskScore}%)
+                        </span>
+                        <span className="text-[11px] font-mono-data text-slate-400">
+                          SLA: {doc.slaDeadline}
+                        </span>
+                      </div>
+                      <p className="text-slate-300">{doc.aiAnalysis.executiveSummary}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                    <span>Assigned Lead: <strong className="text-emerald-400">{doc.assignedOfficer}</strong></span>
+                    <button
+                      onClick={() => onUpdateDocumentVerification(doc.id, { status: 'dispatched_to_client' })}
+                      className="text-[#D4AF37] hover:underline font-semibold"
+                    >
+                      Mark 24h Report Dispatched
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* TAB 2: CONTENT & ARTICLES */}
         {activeTab === 'content' && (
           <div className="space-y-6">
@@ -533,7 +620,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       <td className="py-3 px-4 font-bold text-[#D4AF37]">{p.reference}</td>
                       <td className="py-3 px-4 font-sans text-white">{p.customerName}</td>
                       <td className="py-3 px-4 text-slate-400">
-                        {p.type === 'deposit_kyc' ? 'USD 1k KYC Deposit' : 'Full Package'}
+                        {p.type === 'doc_verification' ? '$2.5k Doc Verification' : p.type === 'deposit_kyc' ? 'USD 1k KYC Deposit' : 'Full Package'}
                       </td>
                       <td className="py-3 px-4 font-bold text-white">
                         ${p.amount.toLocaleString()} {p.currency}

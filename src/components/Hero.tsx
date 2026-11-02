@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight, FileCheck2, Building2, CreditCard, Lock, AlertCircle, Award } from 'lucide-react';
+import { ShieldCheck, FileCheck2, Building2, CreditCard, Lock, AlertCircle, Award, FileSearch } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/translations';
 
@@ -9,6 +9,7 @@ interface HeroProps {
   onViewPackages: () => void;
   onOpenCardPayment: () => void;
   onOpenRegistration: () => void;
+  onOpenDocVerification: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -16,7 +17,8 @@ export const Hero: React.FC<HeroProps> = ({
   onOpenBriefing,
   onViewPackages,
   onOpenCardPayment,
-  onOpenRegistration
+  onOpenRegistration,
+  onOpenDocVerification
 }) => {
   const t = translations[currentLang];
 
@@ -82,8 +84,8 @@ export const Hero: React.FC<HeroProps> = ({
                 <span>Live DGSM Cadastre Verification</span>
               </div>
               <div className="flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                <span>Scam Academy Pitch Deconstruction</span>
+                <FileSearch className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                <span>$2,500 AI + Officer 1 Document Audit (24h)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Building2 className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
@@ -106,25 +108,19 @@ export const Hero: React.FC<HeroProps> = ({
               </button>
 
               <button
+                onClick={onOpenDocVerification}
+                className="px-4 py-3 text-xs font-bold text-white bg-[#182232] hover:bg-[#222E42] border border-[#D4AF37]/60 rounded transition-all flex items-center gap-2 shadow-sm"
+              >
+                <FileSearch className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Verify Document ($2,500 · 24h Report)</span>
+              </button>
+
+              <button
                 onClick={onOpenCardPayment}
-                className="px-4 py-3 text-xs font-semibold text-white bg-[#182232] hover:bg-[#202c40] border border-slate-700 hover:border-[#D4AF37]/60 rounded transition-all flex items-center gap-2"
+                className="px-4 py-3 text-xs font-semibold text-slate-200 hover:text-white bg-[#111722] hover:bg-[#182232] border border-slate-700 rounded transition-all flex items-center gap-2"
               >
                 <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>Pay via Visa / Mastercard</span>
-              </button>
-
-              <button
-                onClick={onViewPackages}
-                className="px-4 py-3 text-xs font-medium text-slate-300 hover:text-white transition-colors"
-              >
-                View Packages →
-              </button>
-
-              <button
-                onClick={onOpenBriefing}
-                className="px-3 py-3 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
-              >
-                Request Briefing
+                <span>Card Pay (Visa/MC)</span>
               </button>
             </div>
           </div>
@@ -165,9 +161,9 @@ export const Hero: React.FC<HeroProps> = ({
             <div className="text-[11px] text-slate-400">Regional transit hub volume</div>
           </div>
           <div className="p-3 rounded-lg bg-[#111722]/60 border border-slate-800">
-            <div className="font-cinzel text-2xl font-bold text-white font-mono-data">7 Days</div>
-            <div className="text-xs font-semibold text-white">Field Immersion</div>
-            <div className="text-[11px] text-slate-400">Pithead to bonded vault</div>
+            <div className="font-cinzel text-2xl font-bold text-white font-mono-data">$2,500</div>
+            <div className="text-xs font-semibold text-white">24h Document Audit</div>
+            <div className="text-[11px] text-slate-400">AI + Staff Officer 1 review</div>
           </div>
           <div className="p-3 rounded-lg bg-[#111722]/60 border border-slate-800">
             <div className="font-cinzel text-2xl font-bold text-emerald-400 font-mono-data">100%</div>

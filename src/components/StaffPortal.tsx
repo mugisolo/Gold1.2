@@ -10,16 +10,20 @@ import {
   Calendar, 
   X, 
   Lock, 
-  FileText,
-  UserCheck
+  FileSearch,
+  UserCheck,
+  Clock,
+  Send
 } from 'lucide-react';
-import { ExpeditionRegistration, FieldLog, StaffMember } from '../types';
+import { ExpeditionRegistration, FieldLog, StaffMember, DocumentVerification } from '../types';
 
 interface StaffPortalProps {
   registrations: ExpeditionRegistration[];
+  documentVerifications: DocumentVerification[];
   fieldLogs: FieldLog[];
   staff: StaffMember[];
   onUpdateRegistration: (id: string, updates: Partial<ExpeditionRegistration>) => void;
+  onUpdateDocumentVerification: (id: string, updates: Partial<DocumentVerification>) => void;
   onAddFieldLog: (log: Omit<FieldLog, 'id' | 'logDate'>) => void;
   onClose: () => void;
   onSwitchToAdmin: () => void;
@@ -27,15 +31,17 @@ interface StaffPortalProps {
 
 export const StaffPortal: React.FC<StaffPortalProps> = ({
   registrations,
+  documentVerifications,
   fieldLogs,
   staff,
   onUpdateRegistration,
+  onUpdateDocumentVerification,
   onAddFieldLog,
   onClose,
   onSwitchToAdmin
 }) => {
-  const [activeTab, setActiveTab] = useState<'kyc-queue' | 'field-logs' | 'manifest'>('kyc-queue');
-  const [activeStaffMember, setActiveStaffMember] = useState<string>(staff[0]?.name || 'Lt. Col. (Rtd) Arthur Mwesigye');
+  const [activeTab, setActiveTab] = useState<'doc-verifications' | 'kyc-queue' | 'field-logs' | 'manifest'>('doc-verifications');
+  const [activeStaffMember, setActiveStaffMember] = useState<string>(staff[0]?.name || 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye');
   
   // Field Log Form State
   const [logTitle, setLogTitle] = useState('');
@@ -81,7 +87,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Field Investigation Team & Sovereign KYC Verification Terminal
+              Staff Officer 1 AI Document Verification Terminal & Sovereign KYC Desk
             </p>
           </div>
         </div>
@@ -97,7 +103,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({
             >
               {staff.map((s) => (
                 <option key={s.id} value={s.name} className="bg-[#111722] text-white">
-                  {s.name} ({s.role.split(' ')[0]})
+                  {s.name}
                 </option>
               ))}
             </select>
@@ -123,6 +129,18 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({
 
       {/* Tabs */}
       <div className="bg-[#0B0F17] border-b border-slate-800/80 px-4 sm:px-8 flex items-center gap-2 overflow-x-auto shrink-0 py-2">
+        <button
+          onClick={() => setActiveTab('doc-verifications')}
+          className={`px-3 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'doc-verifications'
+              ? 'bg-[#182232] text-[#D4AF37] border border-[#D4AF37]/50'
+              : 'text-slate-400 hover:text-white hover:bg-[#111722]'
+          }`}
+        >
+          <FileSearch className="w-4 h-4" />
+          <span>Staff Officer 1: AI Document Audits ($2,500) ({documentVerifications.length})</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('kyc-queue')}
           className={`px-3 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap ${
@@ -163,6 +181,167 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({
       {/* Body Area */}
       <div className="flex-1 p-4 sm:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
         
+        {/* TAB 0: STAFF OFFICER 1 - AI DOCUMENT VERIFICATION QUEUE ($2,500 SERVICE) */}
+        {activeTab === 'doc-verifications' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div>
+                <div className="inline-flex items-center gap-2 text-[11px] font-mono-data text-[#D4AF37] uppercase mb-1">
+                  <span>ROUTED DIRECTLY FROM AI FORENSIC ENGINE TO STAFF OFFICER 1</span>
+                </div>
+                <h3 className="font-cinzel text-xl font-bold text-white">
+                  Staff Officer 1: Document Verification & 24-Hour Follow-Up Desk
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  One-off <strong className="text-[#D4AF37]">USD $2,500</strong> client document submissions analyzed by AI and assigned to <strong>Staff Officer 1 (Lt. Col. Rtd. Arthur Mwesigye)</strong> for DGSM & URA registry follow-up within 24 hours.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs font-mono-data text-amber-300 bg-amber-950/60 border border-amber-800 px-3 py-1.5 rounded flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>24-Hour Report SLA</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              {documentVerifications.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="rounded-xl bg-[#111722] border border-[#D4AF37]/40 p-5 sm:p-6 space-y-4 shadow-xl"
+                >
+                  {/* Top Bar */}
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono-data text-xs font-bold text-[#D4AF37]">{doc.id}</span>
+                        <span className="text-slate-600">·</span>
+                        <span className="text-xs font-semibold text-white bg-slate-800 px-2 py-0.5 rounded">
+                          {doc.documentType}
+                        </span>
+                        <span className="text-[11px] font-mono-data text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded">
+                          Paid: ${doc.feeUsd.toLocaleString()} USD ({doc.paymentRef})
+                        </span>
+                        <span className={`text-[10px] font-mono-data px-2 py-0.5 rounded font-bold uppercase ${
+                          doc.status === 'dispatched_to_client'
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-700'
+                            : 'bg-amber-950 text-amber-300 border border-amber-700'
+                        }`}>
+                          {doc.status === 'dispatched_to_client' ? 'FINAL REPORT SENT TO CLIENT' : 'ASSIGNED TO STAFF OFFICER 1'}
+                        </span>
+                      </div>
+
+                      <h4 className="text-base font-bold text-white mt-2">
+                        Client: {doc.clientName} <span className="text-xs text-slate-400 font-normal">({doc.companyName} · {doc.email})</span>
+                      </h4>
+                      <div className="text-xs text-slate-300 mt-0.5">
+                        Claimed Seller: <strong className="text-[#D4AF37]">{doc.claimedSeller}</strong> · Claimed Offer: <span className="text-white">{doc.claimedQuantityKg} @ {doc.claimedDiscountPercent}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-xs font-mono-data bg-[#0B0F17] p-3 rounded-lg border border-slate-800 shrink-0">
+                      <div className="text-slate-400">Assigned Officer: <span className="text-emerald-400 font-bold">{doc.assignedOfficer}</span></div>
+                      <div className="text-amber-300 mt-0.5">SLA Deadline: {doc.slaDeadline}</div>
+                    </div>
+                  </div>
+
+                  {/* Submitted Clauses */}
+                  <div className="p-3 rounded-lg bg-[#0B0F17] border border-slate-800 text-xs">
+                    <span className="text-[10px] font-mono-data text-slate-400 uppercase block mb-1">
+                      Submitted Document Text & Attachment ({doc.fileName}):
+                    </span>
+                    <p className="text-slate-300 leading-relaxed">{doc.documentTextOrNotes}</p>
+                  </div>
+
+                  {/* AI Forensic Analysis Report */}
+                  {doc.aiAnalysis && (
+                    <div className="p-4 rounded-xl bg-rose-950/15 border border-rose-900/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono-data font-bold text-rose-400 uppercase">
+                          AI Forensic Deconstruction — Verdict: {doc.aiAnalysis.verdict}
+                        </span>
+                        <span className="text-sm font-mono-data font-bold text-rose-400 bg-rose-950/80 px-2.5 py-0.5 rounded border border-rose-800">
+                          Fraud Risk: {doc.aiAnalysis.riskScore}%
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-200 leading-relaxed">
+                        {doc.aiAnalysis.executiveSummary}
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div>
+                          <div className="text-[11px] font-mono-data text-rose-300 uppercase font-bold mb-1">
+                            Detected Red Flags:
+                          </div>
+                          <ul className="space-y-1">
+                            {doc.aiAnalysis.redFlags.map((rf, i) => (
+                              <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                                <span>{rf}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="text-[11px] font-mono-data text-emerald-400 uppercase font-bold mb-1">
+                            Staff Officer 1 Action Plan (24h Follow-Up):
+                          </div>
+                          <ul className="space-y-1">
+                            {doc.aiAnalysis.staffActionPlan.map((step, i) => (
+                              <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                                <span>{step}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Staff Officer 1 Follow-Up & Client Portal Approval Controls */}
+                  <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <input
+                      type="text"
+                      value={doc.staffFollowUpNotes || ''}
+                      onChange={(e) => onUpdateDocumentVerification(doc.id, { staffFollowUpNotes: e.target.value })}
+                      placeholder="Enter Staff Officer 1 physical registry findings before approving for Client Portal..."
+                      className="flex-1 px-3 py-2 text-xs bg-[#0B0F17] border border-slate-700 rounded text-white focus:outline-none focus:border-[#D4AF37]"
+                    />
+
+                    {doc.status === 'dispatched_to_client' ? (
+                      <button
+                        onClick={() => onUpdateDocumentVerification(doc.id, {
+                          status: 'assigned_to_staff_1'
+                        })}
+                        className="px-4 py-2 text-xs font-bold text-emerald-300 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600 rounded transition-colors flex items-center justify-center gap-1.5 shrink-0"
+                        title="Click to re-lock report in Client Portal"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Approved & Unlocked in Client Portal (Click to Re-Lock)</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onUpdateDocumentVerification(doc.id, {
+                          status: 'dispatched_to_client',
+                          staffFollowUpNotes: `${doc.staffFollowUpNotes || 'Physical DGSM & URA registry cross-check completed.'} [Approved & Released to Client Portal by Staff Officer 1]`
+                        })}
+                        className="px-4 py-2 text-xs font-bold text-[#0B0F17] bg-[#D4AF37] hover:bg-[#FEF3C7] rounded transition-colors flex items-center justify-center gap-1.5 shrink-0"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Approve & Unlock Report in Client Portal</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* TAB 1: KYC QUEUE */}
         {activeTab === 'kyc-queue' && (
           <div className="space-y-6">

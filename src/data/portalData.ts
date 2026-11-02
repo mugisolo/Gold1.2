@@ -1,4 +1,4 @@
-import { ContentPost, PhotoItem, StaffMember, FieldLog, PaymentRecord, ExpeditionRegistration } from '../types';
+import { ContentPost, PhotoItem, StaffMember, FieldLog, PaymentRecord, ExpeditionRegistration, DocumentVerification } from '../types';
 
 export const INITIAL_POSTS: ContentPost[] = [
   {
@@ -63,11 +63,11 @@ export const INITIAL_PHOTOS: PhotoItem[] = [
 export const INITIAL_STAFF: StaffMember[] = [
   {
     id: 'staff-1',
-    name: 'Lt. Col. (Rtd) Arthur Mwesigye',
+    name: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
     email: 'mwesigye@ugandagold.org',
     role: 'Senior Due Diligence Officer',
     phone: '+256 772 400 119',
-    activeCasesCount: 5
+    activeCasesCount: 6
   },
   {
     id: 'staff-2',
@@ -95,6 +95,82 @@ export const INITIAL_STAFF: StaffMember[] = [
   }
 ];
 
+export const INITIAL_DOCUMENT_VERIFICATIONS: DocumentVerification[] = [
+  {
+    id: 'DOC-VER-2026-4401',
+    clientName: 'Henrik Lindqvist',
+    companyName: 'Nordic Bullion Treasury AB',
+    email: 'h.lindqvist@nordicbullion.se',
+    phone: '+46 8 501 2290',
+    documentType: 'Full Corporate Offer (FCO)',
+    claimedSeller: 'Victoria Nile Gold Syndicate Ltd',
+    claimedQuantityKg: '150 kg',
+    claimedDiscountPercent: '22% below LBMA',
+    documentTextOrNotes: 'FCO claims 150kg Au Dore bars stored at Entebbe customs warehouse. Requests $65,000 USD wire to private legal counsel escrow for URA 5% export clearance before buyer can view bars.',
+    fileName: 'FCO_VictoriaNile_150KG_Stamped.pdf',
+    feeUsd: 2500,
+    paymentStatus: 'paid',
+    paymentRef: 'UGE-CARD-DOC-4401',
+    assignedOfficer: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
+    status: 'assigned_to_staff_1',
+    submittedAt: '2026-05-01 11:20 UTC',
+    slaDeadline: '2026-05-02 11:20 UTC (Within 24 Hours)',
+    aiAnalysis: {
+      riskScore: 98,
+      verdict: 'CRITICAL COUNTERFEIT RISK',
+      executiveSummary: 'AI Forensic Deconstruction confirms textbook Advance-Fee Gold Fraud. A 22% discount on liquid bullion is economically impossible, and URA never collects export tax via private attorney escrow accounts.',
+      redFlags: [
+        '22% below LBMA spot discount is a mathematical impossibility in physical bullion markets.',
+        'Upfront $65,000 fee routed to a private lawyer account instead of official URA ASYCUDA tax portal.',
+        'Seller entity "Victoria Nile Gold Syndicate Ltd" does not hold an active Mineral Dealer License (MDL) in the 2026 DGSM Cadastre.'
+      ],
+      statutoryCrossCheck: 'Violates Section 142 of the Uganda Mining and Minerals Act 2022 & URA Single Customs Territory statutory payment rules.',
+      staffActionPlan: [
+        'Staff Officer 1 to pull official DGSM negative registry certificate for client dossier.',
+        'Cross-reference attorney escrow bank coordinates with FIA financial intelligence alert list.',
+        'Compile final signed PDF audit report and dispatch to Henrik Lindqvist within 24-hour SLA.'
+      ]
+    },
+    staffFollowUpNotes: 'DGSM search confirmed entity is unlicensed. Preparing final stamped verification report for client dispatch.'
+  },
+  {
+    id: 'DOC-VER-2026-3910',
+    clientName: 'Alexander Vance',
+    companyName: 'Apex Precious Metals DMCC',
+    email: 'a.vance@apexmetals.ae',
+    phone: '+971 50 882 1902',
+    documentType: 'DGSM Mineral License',
+    claimedSeller: 'Kassanda Consolidated Gold Mines Ltd',
+    claimedQuantityKg: '200 kg',
+    claimedDiscountPercent: '18% below LBMA',
+    documentTextOrNotes: 'Submitted alleged DGSM License #MDL-2026-0094 and URA customs bond forms for 200kg Dore bars from Kassanda.',
+    fileName: 'DGSM_License_Kassanda_0094.pdf',
+    feeUsd: 2500,
+    paymentStatus: 'paid',
+    paymentRef: 'UGE-CARD-DOC-3910',
+    assignedOfficer: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
+    status: 'dispatched_to_client',
+    submittedAt: '2026-04-28 08:40 UTC',
+    slaDeadline: '2026-04-29 08:40 UTC (Completed in 14h)',
+    aiAnalysis: {
+      riskScore: 94,
+      verdict: 'CRITICAL COUNTERFEIT RISK',
+      executiveSummary: 'Forged DGSM Mineral Dealer License detected. Serial number #MDL-2026-0094 belongs to an expired industrial limestone quarry permit, and the QR holographic seal is digitally superimposed.',
+      redFlags: [
+        'License serial #MDL-2026-0094 is registered to a non-precious minerals quarry in Tororo, not Kassanda.',
+        '18% discount offer coupled with advance security logistics fee prior to Entebbe refinery fire assay.',
+        'Counterfeit Commissioner signature stamp from 2019 regulatory template.'
+      ],
+      statutoryCrossCheck: 'Confirmed fraudulent instrument under Uganda Mining and Minerals Act 2022.',
+      staffActionPlan: [
+        'Verified physical DGSM registry ledger in Entebbe.',
+        'Issued certified negative verification certificate to client.'
+      ]
+    },
+    staffFollowUpNotes: 'APPROVED & RELEASED BY STAFF OFFICER 1: Physical check at Entebbe DGSM Cadastre confirmed license #MDL-2026-0094 is a forgery. Full report unlocked for client download.'
+  }
+];
+
 export const INITIAL_REGISTRATIONS: ExpeditionRegistration[] = [
   {
     id: 'REG-2026-8812',
@@ -113,7 +189,7 @@ export const INITIAL_REGISTRATIONS: ExpeditionRegistration[] = [
     kycAcknowledged: true,
     kycPaymentStatus: 'paid',
     status: 'approved',
-    assignedStaff: 'Lt. Col. (Rtd) Arthur Mwesigye',
+    assignedStaff: 'Staff Officer 1: Lt. Col. (Rtd) Arthur Mwesigye',
     internalNotes: 'Interpol clear. Corporate trade license validated in Dubai DMCC registry. USD 1,000 KYC payment confirmed via Visa.',
     registeredAt: '2026-04-20',
     passportVerified: true,
@@ -195,6 +271,19 @@ export const INITIAL_FIELD_LOGS: FieldLog[] = [
 
 export const INITIAL_PAYMENTS: PaymentRecord[] = [
   {
+    id: 'PAY-8800',
+    reference: 'UGE-CARD-DOC-4401',
+    customerName: 'Henrik Lindqvist',
+    email: 'h.lindqvist@nordicbullion.se',
+    amount: 2500,
+    currency: 'USD',
+    type: 'doc_verification',
+    status: 'Completed',
+    cardBrand: 'Visa',
+    date: '2026-05-01 11:18',
+    tier: 'One-Off Document Verification ($2,500)'
+  },
+  {
     id: 'PAY-8801',
     reference: 'UGE-CARD-REL-8812',
     customerName: 'Alexander Vance',
@@ -223,7 +312,7 @@ export const INITIAL_PAYMENTS: PaymentRecord[] = [
   {
     id: 'PAY-8803',
     reference: 'UGE-CARD-REL-7119',
-    customerName: ' Tariq Al-Mansoor',
+    customerName: 'Tariq Al-Mansoor',
     email: 'tariq@almansoor-gold.ae',
     amount: 10000,
     currency: 'USD',
