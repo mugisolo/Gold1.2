@@ -1,19 +1,21 @@
 import React from 'react';
-import { Shield, Globe, Lock, FileText, ExternalLink, MapPin } from 'lucide-react';
+import { Shield, Globe, Lock, ExternalLink, MapPin, AlertCircle, KeyRound } from 'lucide-react';
 import { Language } from '../types';
 
 interface FooterProps {
   currentLang: Language;
   onLanguageChange: (lang: Language) => void;
   onOpenCharter: () => void;
-  onOpenVetting: () => void;
+  onOpenRegistration: () => void;
+  onOpenPortalAuth: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   currentLang,
   onLanguageChange,
   onOpenCharter,
-  onOpenVetting
+  onOpenRegistration,
+  onOpenPortalAuth
 }) => {
   return (
     <footer className="bg-[#080B11] border-t border-slate-800 text-slate-400 text-xs">
@@ -97,7 +99,7 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          {/* Operational Facilities & Secretariat */}
+          {/* Operational Facilities & Portal Access */}
           <div className="space-y-3">
             <div className="text-xs font-mono-data uppercase tracking-wider text-white font-bold mb-3">
               Inspection Secretariats
@@ -108,31 +110,42 @@ export const Footer: React.FC<FooterProps> = ({
                 Amber House, Kampala & DGSM Mineral Headquarters, Entebbe, Republic of Uganda
               </span>
             </div>
-            <div className="flex items-start gap-2 text-xs text-slate-400">
-              <Shield className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-              <span>
-                Airside Bonded Logistics Hub, Entebbe International Airport (EBB)
-              </span>
-            </div>
-            <div className="pt-2">
+            
+            <div className="pt-2 space-y-2">
               <button
-                onClick={onOpenVetting}
+                onClick={onOpenRegistration}
                 className="w-full py-2 text-xs font-bold text-[#0B0F17] bg-[#D4AF37] hover:bg-[#FEF3C7] rounded transition-colors"
               >
-                Apply for Private Vetting
+                Register for Expedition
+              </button>
+
+              <button
+                onClick={onOpenPortalAuth}
+                className="w-full py-2 text-xs font-semibold text-slate-300 hover:text-white bg-[#111722] hover:bg-[#182232] border border-slate-700 rounded transition-colors flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Admin & Staff Portal Access</span>
               </button>
             </div>
           </div>
 
         </div>
 
-        {/* Disclaimer Notice */}
-        <div className="p-4 rounded-lg bg-[#0B0F17] border border-slate-800/80 mb-8 text-[11px] text-slate-400 leading-relaxed space-y-1">
+        {/* KYC Mandatory Notice & Statutory Disclaimer */}
+        <div className="p-4 rounded-lg bg-[#0B0F17] border border-slate-800/80 mb-8 text-[11px] text-slate-400 leading-relaxed space-y-2">
+          <div className="flex items-start gap-2 text-amber-200">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <span>
+              <strong className="text-white">Mandatory KYC Disclosure: </strong>
+              USD $1,000 of all registration fees is allocated immediately to sovereign background vetting, Interpol check, and Ministry of Energy protocol clearances, and is <strong className="text-white underline">strictly non-refundable</strong> under any circumstances.
+            </span>
+          </div>
+
           <p>
             <strong className="text-slate-300">Statutory Notice & Independence Disclaimer:</strong> The Uganda Gold Expedition is an independent executive diligence and forensic research symposium. We do not act as gold dealers, brokers, intermediaries, or commercial representatives of any mining entity, refinery, or banking institution. We strictly do NOT buy, sell, or take custody of precious minerals.
           </p>
           <p>
-            No information provided on this platform constitutes an offer to buy or sell securities, commodities, or financial products. All visits to state-controlled mineral facilities and private bonded refineries are subject to prior vetting and clearance by relevant sovereign authorities.
+            Payments are processed via the Relworx card payment gateway strictly for Visa and Mastercard. Mobile money transactions are not accepted.
           </p>
         </div>
 

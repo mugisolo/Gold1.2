@@ -11,7 +11,7 @@ interface ItineraryProps {
 
 export const Itinerary: React.FC<ItineraryProps> = ({
   currentLang,
-  onApplyForTier
+  onRegisterForTier
 }) => {
   const t = translations[currentLang];
   const [selectedDay, setSelectedDay] = useState<number>(1);
